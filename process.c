@@ -466,41 +466,50 @@ setup_stack (void **esp,  char **argv, int argc)
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success) {
         *esp = PHYS_BASE;
+    
+ 
 
-   
+  
 
 	
-      uint32_t *arr[argc]; 
-      for (int i = argc-1; i > 0; i--){
-        *esp -= (strlen(argv[i])+1)*sizeof(char);
-        arr[i] = (int*)*esp; 
-        memcpy(*esp,argv[i],strlen(argv[i])+1);
-      } 
       
-      *esp -= 4;
-      (*(int *)(*esp)) = 0;//sentinel
-
-      for (int i = argc-1; i > 0; i--){
-        *esp -= 4;//32bit
-        (*(uint32_t **)(*esp)) = arr[i];
-      }
-
-      *esp -= 4;
-      (*(uintptr_t **)(*esp)) = (*esp+4);
-      *esp -= 4;
-      *(int *)(*esp) = argc;
-      *esp -= 4;
-      (*(int *)(*esp))=0;
 
       } else
         palloc_free_page (kpage);
     }
 
   /* my implement for argument passing */
-  printf("Hello World \n");
+  printf("Pointer of esp before implement argument passing: %x \n", *esp);
+  char *arg_addr[argc]; 
+      for (int i = argc-1; i > 0; i--){
+        *esp -= (strlen(argv[i])+1)*sizeof(char);
+        arg_addr[i] = *esp; /*Link every arguments to the pointer */ 
+        memcpy(*esp,argv[i],strlen(argv[i])+1);
+	printf("esp: %x \n", *esp);
+      } 
+      
+      char **argv_zero;
+      *esp -=4;
+      (*(char **)(*esp))  = argv[0]; 
+      printf("argv[0]: %x \n", *esp); 
+
+      *esp -= 4;
+      (*(int *)(*esp)) = 0;//sentinel
+
+
+      *esp -= 4;
+      (*(uintptr_t **)(*esp)) = (*esp+4);
+
+      *esp -= 4;
+      *(int *)(*esp) = argc;
+
+      *esp -= 4;
+      (*(int *)(*esp))=0;
+
+  //printf("Hello World \n");
   hex_dump((uintptr_t)*esp, *esp, 0xc0000000-(uintptr_t)*esp, true);
 
-  int i;
+  
   
   /*save all arguments to argv*   */
     
