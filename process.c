@@ -512,8 +512,9 @@ setup_stack (void **esp,  char **argv, int argc)
       
 
       /*NULL Pointer for return address */
-      //*esp -= 4;
-      //(void *)(*esp) = 0;
+     *esp -= sizeof(void *);
+     memcpy(*esp, &arg_ref[argc], sizeof(void *));
+     printf("void pointer address: %x \n", *esp);
 
 
       //*esp -= 4;
@@ -530,19 +531,7 @@ setup_stack (void **esp,  char **argv, int argc)
 
   
   
-  /*save all arguments to argv*   */
-    
   
-
-  /*Write the argument in reverse order */
-  
-
-  /*word-alignment  */
-
-  
-  
-
-  /*writing each arguments address   */
   
 
   return success;
