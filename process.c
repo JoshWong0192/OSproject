@@ -497,7 +497,7 @@ setup_stack (void **esp,  char **argv, int argc)
 
       } 
         
-      for (int i = argc-1; i>0;i--){
+      for (int i = 1; i<argc; i++){
          *esp -=4; 
 	 arg_ref[i] = (int*)*esp;
 	 memcpy(*esp, &arg_ref[i], 4);
