@@ -482,7 +482,7 @@ setup_stack (void **esp,  char **argv, int argc)
 
   /* my implement for argument passing */
   printf("Pointer of esp before implement argument passing: %x \n", *esp);
-  char *arg_ref[100]; 
+  char *arg_ref[255]; /*   */
       for (int i = argc-1; i > 0; i--){
         *esp -= (strlen(argv[i])+1)*sizeof(char);
         arg_ref[i] = *esp; /*Link every arguments to the pointer */ 
@@ -498,12 +498,14 @@ setup_stack (void **esp,  char **argv, int argc)
       } 
         
       for (int i = argc-1; i>0;i--){
-         *esp -=4;
-	 arg_ref[i] = (*(int*)(*esp));
+         *esp -=4; 
+	 arg_ref[i] = (int*)*esp;
+	 memcpy(*esp, &arg_ref[i], 4);
 	 printf("arg[%d]:%x \n",i, *esp);
 
       }
      
+      /*Write the address for argv[0] */
       *esp -=4;
       (*(char **)(*esp))  = argv[0]; 
       printf("argv[0]: %x \n", *esp); 
