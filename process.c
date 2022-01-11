@@ -224,9 +224,11 @@ load (const char *file_name, void (**eip) (void), void **esp)
   bool success = false;
   int i;
    /*argument passing        */
-   char *argv[100];
 
    int argc = 1;
+   char *argv[argc];
+
+   
 
    char *argptr;
 
@@ -480,31 +482,46 @@ setup_stack (void **esp,  char **argv, int argc)
 
   /* my implement for argument passing */
   printf("Pointer of esp before implement argument passing: %x \n", *esp);
-  char *arg_addr[argc]; 
+  char *arg_ref[100]; 
       for (int i = argc-1; i > 0; i--){
         *esp -= (strlen(argv[i])+1)*sizeof(char);
-        arg_addr[i] = *esp; /*Link every arguments to the pointer */ 
+        arg_ref[i] = *esp; /*Link every arguments to the pointer */ 
         memcpy(*esp,argv[i],strlen(argv[i])+1);
 	printf("esp: %x \n", *esp);
+
+	
+        	
+	//memcpy(*esp, &argv[i], 4);
+       //printf("address of argv[%d]: %x \n", i, *esp);
+
+
       } 
-      
-      char **argv_zero;
+        
+      for (int i = argc-1; i>0;i--){
+         *esp -=4;
+	 arg_ref[i] = (*(int*)(*esp));
+	 printf("arg[%d]:%x \n",i, *esp);
+
+      }
+     
       *esp -=4;
       (*(char **)(*esp))  = argv[0]; 
       printf("argv[0]: %x \n", *esp); 
+      
 
-      *esp -= 4;
-      (*(int *)(*esp)) = 0;//sentinel
+      /*NULL Pointer for return address */
+      //*esp -= 4;
+      //(void *)(*esp) = 0;
 
 
-      *esp -= 4;
-      (*(uintptr_t **)(*esp)) = (*esp+4);
+      //*esp -= 4;
+      //(*(uintptr_t **)(*esp)) = (*esp+4);
 
       *esp -= 4;
       *(int *)(*esp) = argc;
 
-      *esp -= 4;
-      (*(int *)(*esp))=0;
+      //*esp -= 4;
+      //(*(int *)(*esp))=0;
 
   //printf("Hello World \n");
   hex_dump((uintptr_t)*esp, *esp, 0xc0000000-(uintptr_t)*esp, true);
