@@ -119,7 +119,7 @@ process_exit (void)
       cur->pagedir = NULL;
       pagedir_activate (NULL);
       pagedir_destroy (pd);
-      printf("%s:exit_code: (%d)\n",cur->name, cur->exit);
+      printf("%s:exit_code: (%d)\n",cur->name, cur->exit); /*print the process name and exit code from struct thread pointed to cur   */
       
     }
 }
@@ -225,17 +225,19 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /*argument passing*/
    
-   int argc = 1;
+   int argc = 1; /*Set the argc default to 1 for null character */
    char *argv[argc];
 
    
 
    char *argptr;
    /*Set the first argument as the tokenized file name */
-   argv[0] = strtok_r((char*)file_name, " ", &argptr);
+   argv[0] = (char*)file_name; /*Link the file_name to the first argument */
+   file_name = strtok_r(file_name, " ", &argptr);
 
    char *token;
    /*Tokenize the arguments*/
+
    token = (char*)file_name;
    while (token != NULL) {
    argv[argc] = token;
@@ -489,7 +491,7 @@ setup_stack (void **esp, char *argv[], int argc)
 
       } 
         
-      for (int i = 0; i<argc; i++){
+      for (int i = argc - 1; i>0; i--){
          *esp -=4; 
 	 arg_ref[i] = (int*)*esp;
 	 memcpy(*esp, &arg_ref[i], 4);
@@ -512,7 +514,7 @@ setup_stack (void **esp, char *argv[], int argc)
      
       //write argc address
       *esp -= 4;
-      *(int *)(*esp) = argc;
+      (*(int *)(*esp)) = argc;
       printf("Address for argc: %x \n", *esp);
 
   //printf("Hello World \n");
