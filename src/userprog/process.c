@@ -38,7 +38,7 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
   char *argptr;
-  file_name = strtok_r((char*)file_name, " ", &argptr);
+  file_name = strtok_r(file_name, " ", &argptr);
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
 
@@ -231,14 +231,14 @@ load (const char *file_name, void (**eip) (void), void **esp)
    
 
    char *argptr;
-   /*Set the first argument as the tokenized file name */
-   argv[0] = (char*)file_name; /*Link the file_name to the first argument */
+   
+   argv[0] = file_name; /*Link the file_name to the first argument */
    file_name = strtok_r(file_name, " ", &argptr);
 
    char *token;
-   /*Tokenize the arguments*/
 
-   token = (char*)file_name;
+   /*Tokenize the arguments*/
+   token = file_name;
    while (token != NULL) {
    argv[argc] = token;
    argc++;
@@ -476,11 +476,11 @@ setup_stack (void **esp, char *argv[], int argc)
     }
 /* my implement for argument passing */
   printf("Pointer of esp before implement argument passing: %x \n", *esp);
-  char *arg_ref[255]; /*setup array for argument address  */
+  char *arg_addr[255]; /*setup array for argument address  */
       for (int i = argc-1; i > 0; i--){
-        *esp -= (strlen(argv[i])+1)*sizeof(char);
-        arg_ref[i] = *esp; /*Link every arguments to the pointer */ 
+        *esp -= (strlen(argv[i])+1);
         memcpy(*esp,argv[i],strlen(argv[i])+1);
+	arg_addr[i]=*esp; /*Link the argument address to the stack pointer */
 	printf("esp: %x \n", *esp);
 
 	
@@ -490,11 +490,18 @@ setup_stack (void **esp, char *argv[], int argc)
 
 
       } 
-        
+      /*Word Padding  */
+      while ((int)*esp%4!=0)
+      {
+	     *esp-=sizeof(uint8_t);
+	      memset(*esp, 0, sizeof(uint8_t));
+      }
+
+        /*Write the address for all arguments */
       for (int i = argc - 1; i>0; i--){
          *esp -=4; 
-	 arg_ref[i] = (int*)*esp;
-	 memcpy(*esp, &arg_ref[i], 4);
+	 //arg_ref[i] = (char*)*esp;
+	 memcpy(*esp, &arg_addr[i], sizeof(char *));
 	 printf("arg[%d]:%x \n",i, *esp);
 
       }
@@ -507,14 +514,14 @@ setup_stack (void **esp, char *argv[], int argc)
 
       /*NULL Pointer for return address */
      *esp -= sizeof(void *);
-     memcpy(*esp, &arg_ref[argc], sizeof(void *));
+     memcpy(*esp, &arg_addr[argc], sizeof(void *));
      printf("void pointer address: %x \n", *esp);
 
 
      
-      //write argc address
+      //write argc address to stack pointer
       *esp -= 4;
-      (*(int *)(*esp)) = argc;
+      memcpy(*esp, &argc, sizeof(int *));
       printf("Address for argc: %x \n", *esp);
 
   //printf("Hello World \n");
